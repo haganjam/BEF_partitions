@@ -1,8 +1,9 @@
 #'
-#' @title loreau_2001_part()
+#' @title local_scale_part()
 #' 
-#' @description Function to calculate Loreau and Hector's (2001, Nature)
-#' biodiversity effect partition using species mixture and monoculture data
+#' @description Function to calculate Loreau and Hector's (2001, Nature) and
+#' Fox (2005, Ecology Letters) biodiversity effect partition using species 
+#' mixture and monoculture data
 #' 
 #' @param data data.frame in the following format
 #' column 1 - sample: variable specifying the unique place-time combination
@@ -10,6 +11,7 @@
 #' column 3 - M: monoculture functioning
 #' column 4 - Y: mixture function
 #' @param RYe expected relative yields for the species as a numeric vector of length = (N species) and which sums to one
+#' @param part either "loreau_2001" or "fox_2005"
 #' 
 #' @symbol Mi - monoculture of each species
 #' @symbol Yoi - observed yield of each species in mixture
@@ -27,7 +29,7 @@ source("functions/helper_functions.R")
 install_if("dplyr")
 install_if("assertthat")
 
-loreau_2001_part <- function(data, RYe) {
+local_scale_part <- function(data, RYe, part = "loreau_2001") {
   
   # test if the input data is a data.frame
   test_1 <- function(x) {
@@ -128,18 +130,49 @@ loreau_2001_part <- function(data, RYe) {
   nbe_df <- aggregate(df[, c("Y", "Ye") ], list(df$sample), sum)
   NBE <- (nbe_df$Y - nbe_df$Ye)
   
-  # calculate the complementarity effect (trait independent complementarity sensu Fox 2005)
-  comp_df <- aggregate(df[, c("dRY", "M")], list(df$sample), mean)
-  CE <- n_sp*(comp_df$dRY)*(comp_df$M)
-  
-  # calculate the selection effect
-  SE <- sapply(split(df, df$sample), function(x) { n_sp*raw_cov(x$dRY, x$M) })
-  
-  # wrap this into a tibble()
-  BEF_df <- tibble(sample = unique(df$sample),
-                   NBE = NBE,
-                   SE = SE,
-                   CE = CE)
+  if (part == "loreau_2001") {
+    
+    # calculate the complementarity effect (trait independent complementarity sensu Fox 2005)
+    comp_df <- aggregate(df[, c("dRY", "M")], list(df$sample), mean)
+    CE <- n_sp*(comp_df$dRY)*(comp_df$M)
+    
+    # calculate the selection effect
+    SE <- sapply(split(df, df$sample), function(x) { n_sp*raw_cov(x$dRY, x$M) })
+    
+    # wrap this into a tibble()
+    BEF_df <- tibble(sample = unique(df$sample),
+                     NBE = NBE,
+                     SE = SE,
+                     CE = CE
+                     )
+    
+  } else if (part == "fox_2005") {
+    
+    # calculate trait independent complementarity sensu Fox 2005
+    comp_df <- aggregate(df[, c("dRY", "M")], list(df$sample), mean)
+    TI_CE <- n_sp*(comp_df$dRY)*(comp_df$M)
+    
+    # calculate trait dependent complementarity
+    TD_CE <- sapply(split(df, df$sample), 
+                    function(x) { n_sp*raw_cov(x$M, (x$RYo - (x$RYo/sum(x$RYo)) ) ) })
+    
+    # calculate the dominance effect
+    DOM <- sapply(split(df, df$sample), 
+                  function(x) { n_sp*raw_cov(x$M, ((x$RYo/sum(x$RYo)) - x$RYe) ) })
+    
+    # wrap this into a data.frame
+    BEF_df <- tibble(sample = unique(df$sample),
+                     NBE = NBE,
+                     TI_CE = TI_CE ,
+                     TD_CE = TD_CE,
+                     DOM = DOM
+                     )
+    
+  } else {
+    
+    stop("Choose appropriate option for the `part` argument")
+    
+  }
   
   return(BEF_df)
   
@@ -156,10 +189,10 @@ f1 <- data.frame(sample = rep(c(1, 2, 3, 4, 5, 6), each = 2),
 f1.ans <- data.frame(SE = c(0, 2.5, 5, 7.5, 10, 12.5),
                      CE = c(0, 37.5, 75, 112.5, 150, 187.5))
 
-# test if the function correctly calculates the biodiversity effects
+# test if the function correctly calculates the biodiversity effects sensu Loreau and Hector (2001, Nature)
 
 # use the partition to calculate the biodiversity effects
-df.test <- loreau_2001_part(data = f1, RYe = c(0.60, 0.40))
+df.test <- local_scale_part(data = f1, RYe = c(0.60, 0.40), part = "loreau_2001")
 SE.test <- all(near(df.test$SE, f1.ans$SE))
 CE.test <- all(near(df.test$CE, f1.ans$CE))
 
@@ -173,5 +206,23 @@ if ( any(c(SE.test, CE.test) == FALSE) ) {
     message("Functions correctly calculate biodiversity effects on the test data")
     
   }
+
+# test if the function correctly calculates the biodiversity effects sensu Fox (2005, Ecology Letters)
+
+# use the partition to calculate the biodiversity effects
+df.test <- local_scale_part(data = f1, RYe = c(0.60, 0.40), part = "fox_2005")
+CE.test <- near(df.test$TI_CE, f1.ans$CE)
+SE.test <- near((df.test$TD_CE+df.test$DOM), f1.ans$SE)
+
+# check if any of the biodiversity effects were incorrectly calculated
+if ( any(c(SE.test, CE.test) == FALSE) ) { 
+  
+  warning("Functions do not correctly calculate biodiversity effects of the test data") 
+  
+} else { 
+  
+  message("Functions correctly calculate biodiversity effects on the test data")
+  
+}
 
 ### END
