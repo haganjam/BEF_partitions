@@ -95,12 +95,12 @@ stock_data <- data.frame(sample = rep(c(1, 2), each = 2),
                          M = rep(c(500, 250), 2),
                          Y = c(300, 100, 330, 110))
 
-# monoculture data
+# monoculture flux data
 fluxM_data <- data.frame(sample = rep(c(1, 2), each = 2),
                          species = rep(c(1, 2), 2),
                          Mflux = c(80, 50, 100, 50))
 
-# mixture
+# mixture flux data
 fluxY_data <- data.frame(sample = c(1, 2),
                          Yflux = c(80, 90))
 
