@@ -1,20 +1,4 @@
 
-# function to check if a package (x) is installed
-install_if <- function(x) {
-  
-  if(x %in% rownames(installed.packages()) == FALSE) {
-    
-    message(paste(x, "is required but not installed. Installing now"))
-    Sys.sleep(1)
-    install.packages(x)
-    library(x)
-    
-  } else{ 
-    
-    library(x, character.only=TRUE)}
-  
-}
-
 #'
 #' @title n_unique()
 #' 

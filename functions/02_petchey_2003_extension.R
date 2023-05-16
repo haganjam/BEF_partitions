@@ -6,13 +6,13 @@ source("functions/helper_functions.R")
 source("functions/01_local_scale_partitions.R")
 
 # install and load libraries required for these functions
-install_if("dplyr")
-install_if("assertthat")
+library(dplyr)
+library(assertthat)
 
 # set-up a function for the Petchey (2003) extension
 petchey_2003_extension <- function(stock_data = NA,
-                                  fluxM_data, fluxY_data, 
-                                  RYe) {
+                                   fluxM_data, fluxY_data, 
+                                   RYe) {
   
   # sort out the fluxM_data
   fluxM <- 
