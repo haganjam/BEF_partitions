@@ -23,11 +23,7 @@
 #' 
 
 # load the helper functions
-source("functions/helper_functions.R")
-
-# install and load libraries required for these functions
-install_if("dplyr")
-install_if("assertthat")
+source("code/helper-functions.R")
 
 local_scale_part <- function(data, RYe, part = "loreau_2001") {
   
@@ -111,8 +107,8 @@ local_scale_part <- function(data, RYe, part = "loreau_2001") {
   
   # sort the data.frame
   df <- 
-    data %>%
-    arrange(sample, species)
+    data |>
+    dplyr::arrange(sample, species)
   
   # define expected relative yields
   df$RYe <- rep(RYe, n_unique(df$sample))
@@ -140,11 +136,11 @@ local_scale_part <- function(data, RYe, part = "loreau_2001") {
     SE <- sapply(split(df, df$sample), function(x) { n_sp*raw_cov(x$dRY, x$M) })
     
     # wrap this into a tibble()
-    BEF_df <- tibble(sample = unique(df$sample),
-                     NBE = NBE,
-                     SE = SE,
-                     CE = CE
-                     )
+    BEF_df <- dplyr::tibble(sample = unique(df$sample),
+                            NBE = NBE,
+                            SE = SE,
+                            CE = CE
+                            )
     
   } else if (part == "fox_2005") {
     
@@ -161,12 +157,12 @@ local_scale_part <- function(data, RYe, part = "loreau_2001") {
                   function(x) { n_sp*raw_cov(x$M, ((x$RYo/sum(x$RYo)) - x$RYe) ) })
     
     # wrap this into a data.frame
-    BEF_df <- tibble(sample = unique(df$sample),
-                     NBE = NBE,
-                     TI_CE = TI_CE ,
-                     TD_CE = TD_CE,
-                     DOM = DOM
-                     )
+    BEF_df <- dplyr::tibble(sample = unique(df$sample),
+                            NBE = NBE,
+                            TI_CE = TI_CE ,
+                            TD_CE = TD_CE,
+                            DOM = DOM
+                            )
     
   } else {
     
@@ -193,8 +189,8 @@ f1.ans <- data.frame(SE = c(0, 2.5, 5, 7.5, 10, 12.5),
 
 # use the partition to calculate the biodiversity effects
 df.test <- local_scale_part(data = f1, RYe = c(0.60, 0.40), part = "loreau_2001")
-SE.test <- all(near(df.test$SE, f1.ans$SE))
-CE.test <- all(near(df.test$CE, f1.ans$CE))
+SE.test <- all(dplyr::near(df.test$SE, f1.ans$SE))
+CE.test <- all(dplyr::near(df.test$CE, f1.ans$CE))
 
 # check if any of the biodiversity effects were incorrectly calculated
 if ( any(c(SE.test, CE.test) == FALSE) ) { 
@@ -211,8 +207,8 @@ if ( any(c(SE.test, CE.test) == FALSE) ) {
 
 # use the partition to calculate the biodiversity effects
 df.test <- local_scale_part(data = f1, RYe = c(0.60, 0.40), part = "fox_2005")
-CE.test <- near(df.test$TI_CE, f1.ans$CE)
-SE.test <- near((df.test$TD_CE+df.test$DOM), f1.ans$SE)
+CE.test <- dplyr::near(df.test$TI_CE, f1.ans$CE)
+SE.test <- dplyr::near((df.test$TD_CE+df.test$DOM), f1.ans$SE)
 
 # check if any of the biodiversity effects were incorrectly calculated
 if ( any(c(SE.test, CE.test) == FALSE) ) { 

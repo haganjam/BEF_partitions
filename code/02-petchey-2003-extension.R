@@ -2,8 +2,8 @@
 # Petchey (2003) function for simple mono versus mixture expectations
 
 # load the helper functions
-source("functions/helper_functions.R")
-source("functions/01_local_scale_partitions.R")
+source("code/helper-functions.R")
+source("code/01-local-partitions.R")
 
 # install and load libraries required for these functions
 library(dplyr)
