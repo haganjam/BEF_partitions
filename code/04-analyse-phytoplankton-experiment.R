@@ -30,7 +30,12 @@ dat_t1 <-
 Y <- dplyr::filter(dat_t1, species == "All")
 M <- dplyr::filter(dat_t1, species != "All")
 
-
+# get the stock data
+MS <- 
+  M |>
+  dplyr::mutate(sample = 1) |>
+  dplyr::rename(M = biovol) |>
+  dplyr::select(sample, species, M)
 
 
 
