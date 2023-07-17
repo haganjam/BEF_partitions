@@ -16,8 +16,8 @@ petchey_2003_extension <- function(stock_data = NA,
   
   # sort out the fluxM_data
   fluxM <- 
-    fluxM_data %>%
-    arrange(sample, species)
+    fluxM_data |>
+    dplyr::arrange(sample, species)
   
   # define expected relative yields
   fluxM$RYe <- rep(RYe, n_unique(fluxM$sample))
@@ -27,22 +27,22 @@ petchey_2003_extension <- function(stock_data = NA,
   
   # calculate the net biodiversity effect
   Mflux_exp_tot_df <- aggregate(list(Yflux_exp_tot = fluxM[["Mflux_exp"]]), list(sample = fluxM$sample), sum)
-  fluxY_tot <- full_join(Mflux_exp_tot_df, fluxY_data , by = "sample")
+  fluxY_tot <- dplyr::full_join(Mflux_exp_tot_df, fluxY_data , by = "sample")
   
   # if there are no biomass stock data, we calculate the NBE and return
   if(!is.data.frame(stock_data)) {
     
     NBE_flux_tot <- 
-      fluxY_tot %>%
-      mutate(NBE_flux_tot = (Yflux-Yflux_exp_tot) ) %>%
-      select(sample, NBE_flux_tot)
+      fluxY_tot |>
+      dplyr::mutate(NBE_flux_tot = (Yflux-Yflux_exp_tot) ) |>
+      dplyr::select(sample, NBE_flux_tot)
     
     return(NBE_flux_tot)
     
   } 
   
   # join the stock data to the monoculture flux data
-  stock_fluxM <- full_join(stock_data, fluxM_data, by = c("sample", "species"))
+  stock_fluxM <- dplyr::full_join(stock_data, fluxM_data, by = c("sample", "species"))
   
   # calculate per biomass flux
   stock_fluxM$fluxM_per_stock <- (stock_fluxM$Mflux/stock_fluxM$M)
@@ -52,13 +52,13 @@ petchey_2003_extension <- function(stock_data = NA,
   
   # calculate the expected mixture flux
   fluxY_no_abun_df <- aggregate(list(Yflux_exp_no_abun = stock_fluxM[["Yflux_exp"]] ), list(sample = stock_fluxM$sample), sum)
-  fluxY_summary <- full_join(fluxY_no_abun_df, fluxY_tot, by = "sample")
+  fluxY_summary <- dplyr::full_join(fluxY_no_abun_df, fluxY_tot, by = "sample")
   
   # calculate the different net biodiversity effects
   NBE_flux <- 
-    fluxY_summary %>%
-    mutate(NBE_flux_tot = (Yflux - Yflux_exp_tot),
-           NBE_flux_no_abun = (Yflux - Yflux_exp_no_abun) )
+    fluxY_summary |>
+    dplyr::mutate(NBE_flux_tot = (Yflux - Yflux_exp_tot),
+                  NBE_flux_no_abun = (Yflux - Yflux_exp_no_abun) )
   
   # calculate the NBE_flux_abun i.e. NBE flux due to changes in abundance
   NBE_abun <- (NBE_flux$NBE_flux_tot - NBE_flux$NBE_flux_no_abun)
@@ -71,19 +71,20 @@ petchey_2003_extension <- function(stock_data = NA,
   # calculate the proportion of each of three terms in Fox (2005)'s partition
   x <- apply(fox_part[,c("TI_CE", "TD_CE", "DOM")], 1, function(x) x/sum(x), simplify = FALSE )
   y <- mapply(function(x, y) x*y, NBE_abun, x, SIMPLIFY = FALSE )
-  z <- bind_rows(y, .id = "sample")
+  z <- dplyr::bind_rows(y, .id = "sample")
+  z$sample <- fluxY_data$sample
   names(z) <- c("sample", "NBE_flux_abun_TI.CE", "NBE_flux_abun_TD.CE", "NBE_flux_abun_DOM")
-  z$sample <- as.numeric(z$sample)
+  z$sample <- as.integer(z$sample)
   
   # join to the NBE_flux data.frame
-  NBE_flux <- full_join(NBE_flux, z, by = "sample")
+  NBE_flux <- dplyr::full_join(NBE_flux, z, by = "sample")
   
   # reorder the columns
   NBE_flux <- 
-    NBE_flux %>%
-    select(sample, NBE_flux_tot, 
-           NBE_flux_abun_TI.CE, NBE_flux_abun_TD.CE, NBE_flux_abun_DOM,
-           NBE_flux_no_abun)
+    NBE_flux |>
+    dplyr::select(sample, NBE_flux_tot, 
+                  NBE_flux_abun_TI.CE, NBE_flux_abun_TD.CE, NBE_flux_abun_DOM,
+                  NBE_flux_no_abun)
   
   return(NBE_flux)
   
@@ -103,6 +104,9 @@ fluxM_data <- data.frame(sample = rep(c(1, 2), each = 2),
 # mixture flux data
 fluxY_data <- data.frame(sample = c(1, 2),
                          Yflux = c(80, 90))
+
+# run the fox partition on these data
+local_scale_part(data = stock_data, RYe = c(0.5, 0.5), part = "fox_2005")
 
 # test the function without stock data
 petchey_2003_extension(stock_data = NA,
