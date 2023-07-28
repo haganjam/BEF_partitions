@@ -70,7 +70,7 @@ petchey_2003_extension <- function(stock_data = NA,
   
   # calculate the proportion of each of three terms in Fox (2005)'s partition
   x <- apply(fox_part[,c("TI_CE", "TD_CE", "DOM")], 1, function(x) x/sum(x), simplify = FALSE )
-  y <- mapply(function(x, y) x*y, NBE_abun, x, SIMPLIFY = FALSE )
+  y <- mapply(function(a1, a2) a1*a2, NBE_abun, x, SIMPLIFY = FALSE )
   z <- dplyr::bind_rows(y, .id = "sample")
   z$sample <- fluxY_data$sample
   names(z) <- c("sample", "NBE_flux_abun_TI.CE", "NBE_flux_abun_TD.CE", "NBE_flux_abun_DOM")
@@ -85,6 +85,9 @@ petchey_2003_extension <- function(stock_data = NA,
     dplyr::select(sample, NBE_flux_tot, 
                   NBE_flux_abun_TI.CE, NBE_flux_abun_TD.CE, NBE_flux_abun_DOM,
                   NBE_flux_no_abun)
+  
+  # convert the output to a tibble
+  NBE_flux <- dplyr::as_tibble(NBE_flux)
   
   return(NBE_flux)
   

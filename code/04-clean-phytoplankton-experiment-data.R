@@ -22,6 +22,11 @@ dat1 <- dplyr::select(dat1, -dplyr::starts_with("..."))
 # remove the empty rows
 dat1 <- dat1[rowSums(is.na(dat1)) < ncol(dat1),]
 
+# get the correct treatments
+dat1 <- 
+  dat1 |>
+  dplyr::filter(tot_P == 5.02)
+
 # give each treatment a unique id
 dat1[["sample"]] <- as.integer(as.factor(with(dat1, paste(tot_P, N_P, sep = "_"))))
 
@@ -37,6 +42,12 @@ head(dat2)
 
 # remove the empty column
 dat2 <- dplyr::select(dat2, -dplyr::starts_with("..."))
+
+# get the correct treatments
+dat2 <- 
+  dat2 |>
+  dplyr::filter(tot_P == 5.02)
+
 
 # give each treatment a unique id
 dat2[["sample"]] <- as.integer(as.factor(with(dat2, paste(tot_P, N_P, sep = "_"))))
@@ -66,7 +77,7 @@ for(i in samples) {
     dplyr::filter(sample == i)
   
   # calculate P-uptake
-  dat1_t1 <- dplyr::mutate(dat1_t1, P_uptake = (tot_P - P)*100 )
+  dat1_t1 <- dplyr::mutate(dat1_t1, P_uptake = ((tot_P - P)/tot_P)*100 )
   
   # calculate the mean for each species replicate
   dat1_t1 <- 
@@ -126,7 +137,7 @@ for(i in samples) {
 }
 
 # remove those treatments without complete monoculture data
-rem <- lapply(MF_list, function(x) nrow(x)) != 0
+rem <- lapply(MF_list, function(x) nrow(x) ) != 0
 
 MYS_list <- MYS_list[rem]
 MF_list <- MF_list[rem] 
