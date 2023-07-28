@@ -65,7 +65,7 @@ PES_long1$NBE_type <- factor(PES_long1$NBE_type,
 levels(PES_long1$NBE_type) <- c("NBE total = ", " NBE abun +", " NBE no_abun")
 
 # set the widths
-widths1 <- rep(c(0.4, 0.2, 0.2), 3)
+widths1 <- rep(c(0.6, 0.4, 0.4), 3)
 
 # set-up a nested colour palette
 col_pal1 <- c("#AC0000", "#FF5D5D", "#FFC9C9")
@@ -98,7 +98,7 @@ PES_long2$NBE_type <- factor(PES_long2$NBE_type)
 levels(PES_long2$NBE_type) <- c("NBE abun =", "DOM +", " TD CE +", " TI CE")
 
 # set the widths
-widths2 <- rep(c(0.2, 0.2, 0.2, 0.3), 3)
+widths2 <- rep(c(0.4, 0.4, 0.4, 0.6), 3)
 length(widths2)
 
 # set-up a nested colour palette
